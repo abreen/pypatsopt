@@ -24,7 +24,7 @@ class Node():
 
         elif _symbolic(self.name) and len(self.children) == 2:
             left, right = self.children
-            return str(left) + ' ' + self.name + ' ' + str(right)
+            return '(' + str(left) + ' ' + self.name + ' ' + str(right) + ')'
 
         elif len(self.children) == 0:
             return self.name
