@@ -137,7 +137,7 @@ def _simplify(node):
 
 
 def _symbolic(name):
-    return all(map(lambda ch: ch in '!@#$%^&*=+-', name))
+    return all(map(lambda ch: ch in '!@#$%^&*=><+-', name))
 
 
 def _print_tree(node, pre=''):
