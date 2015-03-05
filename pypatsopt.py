@@ -128,7 +128,7 @@ subs = [
     ('_2home_2hwxi_2research_2Postiats.*__(.+)', r'\1'),
 
     # brackets
-    (r'( +)\[(.+)\]', BLUE + r'\1\2' + RESET),
+    (r'( +)\[(.+?)\]', BLUE + r'\1\2' + RESET),
 
     # warning() lines
     (r'^warn?ing\((.+?)\): ', YELLOW + "\\1\t" + RESET),
