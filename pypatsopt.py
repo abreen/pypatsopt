@@ -7,6 +7,7 @@ import subprocess
 import io
 import re
 
+VERSION = 0.1
 MAX_EXCERPT_LINES = 10
 
 RED = '\033[91m'
@@ -15,9 +16,12 @@ YELLOW = '\033[93m'
 BLUE = '\033[94m'
 CYAN = '\033[96m'
 INVERTED = '\033[7m'
+UNDERLINE = '\033[4m'
 RESET = '\033[0m'
 
-def line_reference(match):
+ERROR_EFFECT = INVERTED
+
+def _line_reference(match):
     filename = match.group(1)
     start_byte = int(match.group(2))
     start_line = int(match.group(3))
@@ -33,10 +37,6 @@ def line_reference(match):
         desc = desc[:-1]
 
     spans_lines = start_line != end_line
-    if spans_lines:
-        token_highlight = ''
-    else:
-        token_highlight = INVERTED
 
     out = ''
     if type == 'warning':
@@ -77,8 +77,10 @@ def line_reference(match):
             elif i == start_byte:
                 if ch == '\n':
                     lines.append('')
+                elif ch == ' ':
+                    lines.append(' ')
                 else:
-                    lines.append(last_line + token_highlight + ch)
+                    lines.append(last_line + ERROR_EFFECT + ch)
 
                 if i == end_byte:
                     lines[-1] = lines[-1] + RESET
@@ -111,6 +113,11 @@ def line_reference(match):
     out += '\n' + '\n'.join(lines)
     return out
 
+
+def _constraint(match):
+    from parsetree import prettify
+    return "unsolved constraint: " + prettify(match.group(1))
+
 subs = [
     # remove needless prefix
     ('^patsopt: ', ''),
@@ -132,8 +139,18 @@ subs = [
     # error lines
     (r'^(.+\.[ds]ats): (\d+)\(line=(\d+), offs=(\d+)\) ' + \
      r'-- (\d+)\(line=(\d+), offs=(\d+)\): (error|warning)\((.+)\): (.+)',
-     line_reference)
+     _line_reference)
     ]
+
+if '--pretty' in sys.argv:
+    subs.append((r'unsolved constraint: (.+)', _constraint))
+    sys.argv.remove('--pretty')
+
+if '-h' in sys.argv or '--help' in sys.argv:
+    subprocess.call(['patsopt'] + sys.argv[1:])
+    print("pypatsopt wrapper version {}".format(VERSION))
+    print("  --pretty (for better constraint solver expressions)")
+    sys.exit(0)
 
 args = ['patsopt'] + sys.argv[1:]
 patsopt_err = False
