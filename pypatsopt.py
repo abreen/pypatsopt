@@ -10,11 +10,11 @@ import re
 VERSION = 0.1
 MAX_EXCERPT_LINES = 10
 
-RED = '\033[91m'
-GREEN = '\033[92m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-CYAN = '\033[96m'
+RED = '\033[31m'
+GREEN = '\033[32m'
+YELLOW = '\033[33m'
+BLUE = '\033[34m'
+CYAN = '\033[36m'
 INVERTED = '\033[7m'
 UNDERLINE = '\033[4m'
 RESET = '\033[0m'
@@ -114,9 +114,9 @@ def _line_reference(match):
     return out
 
 
-def _constraint(match):
+def _constraint(before, match):
     from parsetree import prettify
-    return "unsolved constraint: " + prettify(match.group(1))
+    return before + prettify(match.group(1))
 
 subs = [
     # remove needless prefix
@@ -143,7 +143,14 @@ subs = [
     ]
 
 if '--pretty' in sys.argv:
-    subs.append((r'unsolved constraint: (.+)', _constraint))
+    subs.insert(0, (r'cannot be assigned the type (.+)',
+                 lambda m: _constraint("expression cannot be assigned: ", m)))
+    subs.append((r'unsolved constraint: (.+)',
+                 lambda m: _constraint("unsolved constraint: ", m)))
+    subs.append((r'The actual term is: (.+)',
+                 lambda m: _constraint("actual term: ", m)))
+    subs.append((r'The needed term is: (.+)',
+                 lambda m: _constraint("needed: ", m)))
     sys.argv.remove('--pretty')
 
 if '-h' in sys.argv or '--help' in sys.argv:
